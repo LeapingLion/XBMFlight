@@ -1,4 +1,6 @@
+import sys
 import statistics
+import os
 
 
 def find_min_max_signals(relax_file):
@@ -7,10 +9,10 @@ def find_min_max_signals(relax_file):
     line = file.readline()
     while line != "":
         line_list = line.split(",")
-        e0s.append(line_list[0])
-        e1s.append(line_list[1])
-        e2s.append(line_list[2])
-        e3s.append(line_list[3])
+        e0s.append(float(line_list[0]))
+        e1s.append(float(line_list[1]))
+        e2s.append(float(line_list[2]))
+        e3s.append(float(line_list[3]))
         line = file.readline()
     e_s = [e0s, e1s, e2s, e3s]
     min_max_signals = []
@@ -22,8 +24,14 @@ def find_min_max_signals(relax_file):
     return min_max_signals
 
 
-def getCurrentSignals():
-    return #tuple
+def getCurrentSignals(real_file):
+    with open(real_file, "rb") as file:
+        file.seek(-2, os.SEEK_END)
+        while file.read(1) != b'\n':
+            file.seek(-2, os.SEEK_CUR)
+        line = file.readline().decode()
+        line_list = line.split(",")
+    return tuple(line_list)
 
 
 def report_spikes(min_max_signals, signals):
@@ -37,12 +45,18 @@ def report_spikes(min_max_signals, signals):
 
 
 def main():
-    relax_file = "eeg_boiler.csv"
-    min_max_signals = find_min_max_signals()
+    # Takes 2 command line arguments which are the muse signal files for "at rest" and "during gameplay"
+    # Takes Action if a spike is detected.
+    relax_file, real_file = sys.argv[0], sys.argv[1]
+    min_max_signals = find_min_max_signals(relax_file)
     while True:
-        signals = getCurrentSignals()
+        signals = getCurrentSignals(real_file)
         spike = report_spikes(min_max_signals, signals)
         if spike:
             print("Triggered")
+
+
+if __name__ == "__main__":
+    main()
 
 
